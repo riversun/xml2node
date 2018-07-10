@@ -83,6 +83,7 @@
         var parser = new Xml2Node.Parser();
         var jsObject = parser.parseXML(xml);
         var node=new Xml2Node.Node(jsObject);
+        parser.createHint(xml);
         textOutput.textContent = JSON.stringify(jsObject, null, " ");
 
 

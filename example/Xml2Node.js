@@ -7,6 +7,8 @@ module.exports = {
     Node: XmlNode
 };
 },{"./src/Xml2Node.js":2,"./src/XmlNode.js":3}],2:[function(require,module,exports){
+var XmlNode = require("./XmlNode.js");
+
 var Xml2Node =
     (function () {
         'use strict';
@@ -16,6 +18,57 @@ var Xml2Node =
 
         }
 
+        Xml2Node.prototype.createHint = function (xmlText) {
+            var me = this;
+            var jsObject = me.parseXML(xmlText);
+            var node = new XmlNode(jsObject);
+            me._createHintInternally(node, {stack: []});
+
+        };
+        Xml2Node.prototype._createHintInternally = function (node, hint) {
+            var me = this;
+
+            var tagNames = node.getChildTagNames();
+
+
+            for (var idx = 0; idx < tagNames.length; idx++) {
+
+                var childTagName = tagNames[idx];
+
+                var childCount = node.getNumOfChildren(childTagName);
+
+
+                for (var i = 0; i < childCount; i++) {
+
+
+                    var childNode = node.get(childTagName, i);
+
+
+                    var hintStr = ".get(" + childNode.getTagName()
+                    if (childCount - 1 > 0) {
+                        hintStr += "[" + i + "]";
+                    }
+                    hintStr += ")";
+
+                    hint.stack.push(hintStr);
+
+                    var str = "";
+                    for (var j in hint.stack) {
+                        str += hint.stack[j];
+                    }
+
+                    console.log(str);
+
+                    me._createHintInternally(childNode, hint);
+
+                    hint.stack.pop();
+
+                }
+
+            }
+
+
+        }
 
         /**
          * 指定されてxmlテキストをパースする
@@ -43,6 +96,8 @@ var Xml2Node =
             }
 
             var elementModel = {};
+            elementModel.tagName = element.tagName;
+
             model[element.tagName].push(elementModel);
 
 
@@ -98,8 +153,7 @@ var Xml2Node =
     })();
 
 module.exports = Xml2Node;
-},{}],3:[function(require,module,exports){
-
+},{"./XmlNode.js":3}],3:[function(require,module,exports){
 var XmlNode =
     (function () {
         'use strict';
@@ -108,6 +162,10 @@ var XmlNode =
             this.node = node;
         }
 
+        XmlNode.prototype.getTagName = function () {
+            var me=this;
+                                                    return me.node.tagName;
+        };
         XmlNode.prototype.get = function (name, index) {
             var me = this;
 
@@ -125,8 +183,17 @@ var XmlNode =
                 return new XmlNode(targetArray[index]);
             }
         };
+        XmlNode.prototype.getChildTagNames = function () {
+            var me = this;
+            var tagNames = [];
+            for (var key in me.node.children) {
 
-        XmlNode.prototype.numOfChildren = function (name) {
+                tagNames.push(key);
+            }
+            return tagNames;
+        }
+
+        XmlNode.prototype.getNumOfChildren = function (name) {
             var me = this;
             if (me.node.children && me.node.children[name]) {
                 return me.node.children[name].length;
@@ -137,10 +204,10 @@ var XmlNode =
 
         XmlNode.prototype.hasChild = function (name) {
             var me = this;
-            return (me.numOfChildren(name) > 0);
+            return (me.getNumOfChildren(name) > 0);
         };
 
-        XmlNode.prototype.value = function (name) {
+        XmlNode.prototype.value = function () {
             var me = this;
             return me.node.value;
         };

@@ -1,4 +1,3 @@
-
 var XmlNode =
     (function () {
         'use strict';
@@ -7,6 +6,10 @@ var XmlNode =
             this.node = node;
         }
 
+        XmlNode.prototype.getTagName = function () {
+            var me=this;
+                                                    return me.node.tagName;
+        };
         XmlNode.prototype.get = function (name, index) {
             var me = this;
 
@@ -24,8 +27,17 @@ var XmlNode =
                 return new XmlNode(targetArray[index]);
             }
         };
+        XmlNode.prototype.getChildTagNames = function () {
+            var me = this;
+            var tagNames = [];
+            for (var key in me.node.children) {
 
-        XmlNode.prototype.numOfChildren = function (name) {
+                tagNames.push(key);
+            }
+            return tagNames;
+        }
+
+        XmlNode.prototype.getNumOfChildren = function (name) {
             var me = this;
             if (me.node.children && me.node.children[name]) {
                 return me.node.children[name].length;
@@ -36,10 +48,10 @@ var XmlNode =
 
         XmlNode.prototype.hasChild = function (name) {
             var me = this;
-            return (me.numOfChildren(name) > 0);
+            return (me.getNumOfChildren(name) > 0);
         };
 
-        XmlNode.prototype.value = function (name) {
+        XmlNode.prototype.value = function () {
             var me = this;
             return me.node.value;
         };

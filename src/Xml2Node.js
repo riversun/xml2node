@@ -1,3 +1,5 @@
+var XmlNode = require("./XmlNode.js");
+
 var Xml2Node =
     (function () {
         'use strict';
@@ -7,6 +9,57 @@ var Xml2Node =
 
         }
 
+        Xml2Node.prototype.createHint = function (xmlText) {
+            var me = this;
+            var jsObject = me.parseXML(xmlText);
+            var node = new XmlNode(jsObject);
+            me._createHintInternally(node, {stack: []});
+
+        };
+        Xml2Node.prototype._createHintInternally = function (node, hint) {
+            var me = this;
+
+            var tagNames = node.getChildTagNames();
+
+
+            for (var idx = 0; idx < tagNames.length; idx++) {
+
+                var childTagName = tagNames[idx];
+
+                var childCount = node.getNumOfChildren(childTagName);
+
+
+                for (var i = 0; i < childCount; i++) {
+
+
+                    var childNode = node.get(childTagName, i);
+
+
+                    var hintStr = ".get(" + childNode.getTagName()
+                    if (childCount - 1 > 0) {
+                        hintStr += "[" + i + "]";
+                    }
+                    hintStr += ")";
+
+                    hint.stack.push(hintStr);
+
+                    var str = "";
+                    for (var j in hint.stack) {
+                        str += hint.stack[j];
+                    }
+
+                    console.log(str);
+
+                    me._createHintInternally(childNode, hint);
+
+                    hint.stack.pop();
+
+                }
+
+            }
+
+
+        }
 
         /**
          * 指定されてxmlテキストをパースする
@@ -34,6 +87,8 @@ var Xml2Node =
             }
 
             var elementModel = {};
+            elementModel.tagName = element.tagName;
+
             model[element.tagName].push(elementModel);
 
 
