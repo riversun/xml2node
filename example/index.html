@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title></title>
+    <style>
+        textarea.box1 {
+            flex-shrink: 0;
+            resize: none;
+            width: 400px;
+            height: 300px;
+        }
+        textarea.box2 {
+            flex-shrink: 0;
+            resize: none;
+            width: 940px;
+            height: 300px;
+        }
+        div {
+            display: flex;
+            align-items: center;
+        }
+
+        button {
+            margin: 20px;
+            width:120px;
+            height: 60px;
+        }
+
+    </style>
+
+</head>
+<body>
+
+<header>xml2node demo</header>
+
+<div>
+    <textarea id="text-input" class="box1" readonly></textarea>
+    <button id="button-run">CONVERT</button>
+    <textarea id="text-output" class="box1" readonly></textarea>
+</div>
+<br>
+
+<div>
+    <textarea id="text-output2" class="box2"  readonly></textarea>
+</div>
+<script src="Xml2Node.js"></script>
+
+
+<script>
+
+    var xml =
+        '<?xml version="1.0" encoding="utf-8"?>' + '\n' +
+        '<opml version="2.0">' + '\n' +
+        '  <head>' + '\n' +
+        '    <title>Original Title</title>' + '\n' +
+        '    <flavor>RSS Example App</flavor>' + '\n' +
+        '    <source>https://example.com</source>' + '\n' +
+        '  </head>' + '\n' +
+        '  <body>' + '\n' +
+        '    <outline text="Greeting">' + '\n' +
+        '      <outline text="We say good morning in the morning."/>' + '\n' +
+        '      <outline text="We say hello at noon."/>' + '\n' +
+        '      <outline text="We say good evening at night."/>' + '\n' +
+        '    </outline>' + '\n' +
+        '    <outline text="Thank">' + '\n' +
+        '      <outline text="Thank you."/>' + '\n' +
+        '      <outline text="Appreciate it."/>' + '\n' +
+        '    </outline>' + '\n' +
+        '  </body>' + '\n' +
+        '</opml>';
+
+    var textInput = document.querySelector("#text-input");
+    var textOutput = document.querySelector("#text-output");
+    var textOutput2 = document.querySelector("#text-output2");
+    var buttonRun = document.querySelector("#button-run");
+
+
+    textInput.textContent = xml;
+
+
+    var funcConvert = function (evt) {
+        var parser = new Xml2Node.Parser();
+        var jsObject = parser.parseXML(xml);
+        var node=new Xml2Node.Node(jsObject);
+        textOutput.textContent = JSON.stringify(jsObject, null, " ");
+
+
+        textOutput2.textContent +=
+            "var parser = new Xml2Node.Parser();\n" +
+            "var jsObject = parser.parseXML(xml);\n" +
+            "var node=new Xml2Node.Node(jsObject);\n"
+            "node.get('opml').attr('version')" + "=" +
+            node.get('opml').attr('version')+"\n"+
+            node.get('opml').attr('version')+"\n";
+
+
+    };
+    funcConvert();
+
+
+    buttonRun.addEventListener("click", funcConvert);
+
+
+    //alert(new XmlNode(null))
+    //alert(new Xml2Node.Node(jso).get("opml").attr("version"));
+    //
+    //    var jso = new Xml2Node().parseXML(xml);
+    //    console.log(JSON.stringify(jso));
+    //    // console.log(jso.opml[0].children.head[0].children.title[0].value);
+    //    //  alert(new XQ(jso).get("opml").get("head").get("title").value());
+    //    //alert(new XQ(jso).get("opml").attr("version"));
+    //    alert(new XmlNode(jso).get("opml").get("body").get("outline").get("outline", 0).attr("text"));
+    //    // alert(new XQ(jso).get("opml").get("body1").get("outline1").numOfChildren("outline"));
+
+
+</script>
+</body>
+</html>
