@@ -16,6 +16,11 @@ git clone https://github.com/riversun/xml2node.git
 npm start
 ```
 
+## install via npm
+
+```shell
+npm install xml2node
+```
 
 # How to use?
 ## Access element of XML values/attributes like as follows.
