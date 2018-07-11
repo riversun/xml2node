@@ -1,7 +1,7 @@
 {
   "name": "xml2node",
   "version": "1.0.0",
-  "description": "",
+  "description": "Simple and easy XML parser",
   "main": "index.js",
   "scripts": {
     "start": "run-p watch server:nodejs",
@@ -15,7 +15,7 @@
     "url": "git+https://github.com/riversun/xml2node.git"
   },
   "author": "Tom Misawa <riversun.org@gmail.com> (https://github.com/riversun)",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/riversun/xml2node/issues"
   },
