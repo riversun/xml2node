@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title></title>
+    <title>xml2node.js example</title>
     <style>
         textarea.box1 {
             flex-shrink: 0;
@@ -10,20 +10,27 @@
             width: 400px;
             height: 300px;
         }
+
         textarea.box2 {
             flex-shrink: 0;
             resize: none;
-            width: 940px;
+            width: 970px;
             height: 300px;
         }
+
         div {
             display: flex;
             align-items: center;
         }
 
+        div.column {
+            display: flex;
+            flex-direction: column;;
+        }
+
         button {
             margin: 20px;
-            width:120px;
+            width: 120px;
             height: 60px;
         }
 
@@ -35,15 +42,24 @@
 <header>xml2node demo</header>
 
 <div>
-    <textarea id="text-input" class="box1" readonly></textarea>
+    <div class="column">
+        <span>XML</span>
+        <textarea id="text-input" class="box1"></textarea></div>
     <button id="button-run">CONVERT</button>
-    <textarea id="text-output" class="box1" readonly></textarea>
+    <div class="column">
+        <span>JSON</span>
+        <textarea id="text-output" class="box1" readonly></textarea>
+    </div>
 </div>
 <br>
 
 <div>
-    <textarea id="text-output2" class="box2"  readonly></textarea>
+    <div class="column">
+        <span>Source code example</span>
+        <textarea id="text-output2" class="box2" readonly></textarea>
+    </div>
 </div>
+
 <script src="Xml2Node.js"></script>
 
 
@@ -81,39 +97,16 @@
 
     var funcConvert = function (evt) {
         var parser = new Xml2Node.Parser();
-        var jsObject = parser.parseXML(xml);
-        var node=new Xml2Node.Node(jsObject);
-        parser.createHint(xml);
+
+        var jsObject = parser.parseXML(textInput.value);
+        var node = new Xml2Node.Node(jsObject);
+
+        var hintCode = parser.generateExampleSourceCode(textInput.value);
         textOutput.textContent = JSON.stringify(jsObject, null, " ");
-
-
-        textOutput2.textContent +=
-            "var parser = new Xml2Node.Parser();\n" +
-            "var jsObject = parser.parseXML(xml);\n" +
-            "var node=new Xml2Node.Node(jsObject);\n"
-            "node.get('opml').attr('version')" + "=" +
-            node.get('opml').attr('version')+"\n"+
-            node.get('opml').attr('version')+"\n";
-
-
-    };
-    funcConvert();
-
+        textOutput2.textContent = hintCode;
+    }
 
     buttonRun.addEventListener("click", funcConvert);
-
-
-    //alert(new XmlNode(null))
-    //alert(new Xml2Node.Node(jso).get("opml").attr("version"));
-    //
-    //    var jso = new Xml2Node().parseXML(xml);
-    //    console.log(JSON.stringify(jso));
-    //    // console.log(jso.opml[0].children.head[0].children.title[0].value);
-    //    //  alert(new XQ(jso).get("opml").get("head").get("title").value());
-    //    //alert(new XQ(jso).get("opml").attr("version"));
-    //    alert(new XmlNode(jso).get("opml").get("body").get("outline").get("outline", 0).attr("text"));
-    //    // alert(new XQ(jso).get("opml").get("body1").get("outline1").numOfChildren("outline"));
-
 
 </script>
 </body>

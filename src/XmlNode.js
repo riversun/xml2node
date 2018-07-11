@@ -7,9 +7,10 @@ var XmlNode =
         }
 
         XmlNode.prototype.getTagName = function () {
-            var me=this;
-                                                    return me.node.tagName;
+            var me = this;
+            return me.node.tagName;
         };
+
         XmlNode.prototype.get = function (name, index) {
             var me = this;
 
@@ -27,6 +28,7 @@ var XmlNode =
                 return new XmlNode(targetArray[index]);
             }
         };
+
         XmlNode.prototype.getChildTagNames = function () {
             var me = this;
             var tagNames = [];
@@ -34,6 +36,7 @@ var XmlNode =
 
                 tagNames.push(key);
             }
+
             return tagNames;
         }
 
@@ -46,7 +49,8 @@ var XmlNode =
             }
         };
 
-        XmlNode.prototype.hasChild = function (name) {
+
+        XmlNode.prototype.hasChildOf = function (name) {
             var me = this;
             return (me.getNumOfChildren(name) > 0);
         };
@@ -78,6 +82,18 @@ var XmlNode =
                 return true;
             }
             return false;
+        };
+
+        XmlNode.prototype.getAttrNames = function () {
+            var me = this;
+            var attrNames = [];
+            if (me.node.attr) {
+                for (var key in me.node.attr) {
+                    attrNames.push(key);
+                }
+            }
+            return attrNames;
+
         };
 
 
