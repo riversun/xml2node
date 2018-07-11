@@ -4,8 +4,21 @@
 It is licensed under [MIT license](https://opensource.org/licenses/MIT).
 
 # Quick start
-## Access element of XML values/attributes like as follows.
+## demo on the web
+https://riversun.github.io/xml2node/
 
+## demo on node.js
+
+**clone this project and type**
+
+```shell
+git clone https://github.com/riversun/xml2node.git
+npm start
+```
+
+
+# How to use?
+## Access element of XML values/attributes like as follows.
 
 ### Example input-XML
 ```XML
