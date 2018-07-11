@@ -1,6 +1,6 @@
 {
   "name": "xml2node",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Simple and easy XML parser",
   "main": "index.js",
   "scripts": {

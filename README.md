@@ -31,8 +31,6 @@ npm install xml2node
 <opml version="2.0">
   <head>
     <title>Original Title</title>
-    <flavor>RSS Example App</flavor>
-    <source>https://example.com</source>
   </head>
   <body>
     <outline text="Greeting">
@@ -55,8 +53,6 @@ var jsObject = parser.parseXML(xmlText);
 var node=new Xml2Node.Node(jsObject);
 console.log(node.get("opml").attr("version")); // -> 2.0
 console.log(node.get("opml").get("head").get("title").value()); // ->Original Title
-console.log(node.get("opml").get("head").get("flavor").value()); // ->RSS Example App
-console.log(node.get("opml").get("head").get("source").value()); // ->https://example.com
 console.log(node.get("opml").get("body").get("outline",0).attr("text")); // -> Greeting
 console.log(node.get("opml").get("body").get("outline",0).get("outline",0).attr("text")); // -> We say good morning in the morning.
 console.log(node.get("opml").get("body").get("outline",0).get("outline",1).attr("text")); // -> We say hello at noon.
