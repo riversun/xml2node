@@ -66,23 +66,33 @@
 <script>
 
     var xml =
-        '<?xml version="1.0" encoding="utf-8"?>' + '\n' +
-        '<opml version="2.0">' + '\n' +
-        '  <head>' + '\n' +
-        '    <title>Original Title</title>' + '\n' +
-        '  </head>' + '\n' +
-        '  <body>' + '\n' +
-        '    <outline text="Greeting" title="Chapter1">' + '\n' +
-        '      <outline text="We say good morning in the morning."/>' + '\n' +
-        '      <outline text="We say hello at noon."/>' + '\n' +
-        '      <outline text="We say good evening at night."/>' + '\n' +
-        '    </outline>' + '\n' +
-        '    <outline text="Thank" title="Chapter2">' + '\n' +
-        '      <outline text="Thank you."/>' + '\n' +
-        '      <outline text="Appreciate it."/>' + '\n' +
-        '    </outline>' + '\n' +
-        '  </body>' + '\n' +
-        '</opml>';
+        '<html>\n' +
+        '    <body version="2.0">\n' +
+        '        <!--StartFragment-->\n' +
+        '        <ul>\n' +
+        '            <li>Today\'s menu\n' +
+        '                <ul>\n' +
+        '                    <li>Pasta</li>\n' +
+        '                    <li>Pizza</li>\n' +
+        '                </ul>\n' +
+        '            </li>\n' +
+        '            <li>Today\'s Drink\n' +
+        '                <ul>\n' +
+        '                    <li>Sake</li>\n' +
+        '                    <li>Orange juice</li>\n' +
+        '                    <li>Glass of water</li>\n' +
+        '                    <li>Special Drink\n' +
+        '                        <ul>\n' +
+        '                            <li power="200">Green Water</li>\n' +
+        '                            <li power="500">Red Water</li>\n' +
+        '                        </ul>\n' +
+        '                    </li>\n' +
+        '                </ul>\n' +
+        '            </li>\n' +
+        '        </ul>\n' +
+        '        <!--EndFragment-->\n' +
+        '    </body>\n' +
+        '</html>';
 
     var textInput = document.querySelector("#text-input");
     var textOutput = document.querySelector("#text-output");

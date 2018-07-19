@@ -4,10 +4,15 @@ var Xml2Node =
     (function () {
         'use strict';
 
-        function Xml2Node() {
-            this.parser = new DOMParser();
-
+        function Xml2Node(domParser) {
+            this.parser = null;
+            if (domParser) {
+                this.parser = domParser;
+            } else {
+                this.parser = new DOMParser();
+            }
         }
+
 
         /**
          * Parse specified XML text
@@ -20,7 +25,18 @@ var Xml2Node =
             var doc = me.parser.parseFromString(xmlText, "text/xml");
 
             var model = {};
-            me._parseInternally(doc.children[0], model, {stack: [], index: []});
+
+            var firstElement;
+            
+            for (var i = 0; i < doc.childNodes.length; i++) {
+                var tagName = doc.childNodes[i].nodeName;
+                if (tagName && tagName != "#text" && tagName != "#comment") {
+                    firstElement = doc.childNodes[i];
+                    break;
+                }
+            }
+
+            me._parseInternally(firstElement, model, {stack: [], index: []});
 
             return {
                 children: model
@@ -52,7 +68,8 @@ var Xml2Node =
 
                 } else {
                     //-if text node is not empty
-                    parentElementModel.value = element.textContent;
+
+                    parentElementModel.value = me.removeUnnecessaryTail(element.textContent);
                 }
 
 
@@ -69,17 +86,36 @@ var Xml2Node =
 
             model[element.tagName].push(elementModel);
 
+            var elementHasValueOrChildren = false;
 
-            var elementHasValueOrChildren = (element.children.length > 0);
+            for (var nodeIdx = 0; nodeIdx < element.childNodes.length; nodeIdx++) {
+                if (element.childNodes[nodeIdx].nodeName == "#text") {
+
+                    var blankReplacedElementContent = element.textContent.replace(/ /g, '').replace(/\r?\n/g, '').replace(/\n/g, '').replace(/\t/g, '');
+                    if (blankReplacedElementContent.length == 0) {
+                    } else {
+                        //-if text node is not empty
+                        elementHasValueOrChildren = true;
+                    }
+
+                }
+                else if (element.childNodes[nodeIdx].nodeName == "#comment") {
+
+                } else {
+                    elementHasValueOrChildren = true;
+                }
+            }
+
 
             if (elementHasValueOrChildren) {
                 elementModel.children = {};
-            } else {
-                if (element.textContent && element.textContent.length > 0) {
-                    elementModel.value = element.textContent;
-                    return;
-                }
             }
+            // else {
+            //     if (element.textContent && element.textContent.length > 0) {
+            //         elementModel.value = element.textContent;
+            //         return;
+            //     }
+            // }
 
 
             //start of handling attributes
@@ -116,7 +152,30 @@ var Xml2Node =
 
 
         };
+        /**
+         * Remove unncessary space or newline chars
+         * @param text
+         * @returns {string}
+         */
+        Xml2Node.prototype.removeUnnecessaryTail = function (text) {
+            var textLen = text.length;
+            var tailIndex = textLen;
+            for (var charIdx = textLen - 1; charIdx >= 0; charIdx--) {
+                var charAtIdx = text.charAt(charIdx);
+                if (charAtIdx == ' ' || charAtIdx == '\n' || charAtIdx == '\r') {
+                    //- if space or new line
+                } else {
+                    //- if concrete char
+                    tailIndex = charIdx;
+                    break;
+                }
 
+            }
+            var resultText = text.substr(0, tailIndex + 1);
+
+            return resultText;
+
+        };
         Xml2Node.prototype.generateExampleSourceCode = function (xmlText) {
             var me = this;
             var jsObject = me.parseXML(xmlText);
@@ -189,7 +248,7 @@ var Xml2Node =
                             var attrStr = hintCodePrefix + _tmpStr + '.attr("' + childNodeAttrName + '")';
                             attrStr += hintCodeSuffix;
                             if (printWithValue) {
-                                attrStr += " // -> " + childNode.attr(childNodeAttrName);
+                                attrStr += " // -> " + '"'+childNode.attr(childNodeAttrName)+'"';
                             }
 
                             //add attribute showing code
@@ -203,7 +262,7 @@ var Xml2Node =
                         var valueStr = hintCodePrefix + _tmpStr + ".value()";
                         valueStr += hintCodeSuffix;
                         if (printWithValue) {
-                            valueStr += " // ->" + childNode.value();
+                            valueStr += " // -> " + '"'+childNode.value()+'"';
                         }
 
                         //add value showing code
