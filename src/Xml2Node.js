@@ -27,32 +27,64 @@ var Xml2Node =
             };
         };
 
-        Xml2Node.prototype._parseInternally = function (element, model) {
+        Xml2Node.prototype._parseInternally = function (element, model, parentElementModel) {
             var me = this;
+
+            //model["body"]=[];
+            //model["body"][0]={tagName:"body",value="hogehoge",children:[],attr={}};
 
             if (!model[element.tagName]) {
                 model[element.tagName] = [];
             }
 
-            var elementModel = {};
+
+            if (element.nodeName == "#comment") {
+                //-if element node is comment node
+                return;
+            }
+
+            if (element.nodeName == "#text") {
+                //-if element node is text node
+
+                var blankReplacedElementContent = element.textContent.replace(/ /g, '').replace(/\r?\n/g, '').replace(/\n/g, '').replace(/\t/g, '');
+                if (blankReplacedElementContent.length == 0) {
+                    //-if text node is empty
+
+                } else {
+                    //-if text node is not empty
+                    parentElementModel.value = element.textContent;
+                }
+
+
+                return;
+            }
+
+            var elementModel =
+                {
+                    tagName: null,
+                    children: null,
+                    attr: null
+                };
             elementModel.tagName = element.tagName;
 
             model[element.tagName].push(elementModel);
 
 
-            var isIndependentNode = !(element.children.length > 0);
+            var elementHasValueOrChildren = (element.children.length > 0);
 
-            if (isIndependentNode) {
+            if (elementHasValueOrChildren) {
+                elementModel.children = {};
+            } else {
                 if (element.textContent && element.textContent.length > 0) {
                     elementModel.value = element.textContent;
+                    return;
                 }
-            } else {
-                elementModel.children = {};
             }
 
 
             //start of handling attributes
             var attrsModel;
+
 
             if (element.attributes.length > 0) {
                 attrsModel = {};
@@ -71,17 +103,16 @@ var Xml2Node =
                     attrsModel[attrModel.name] = [];
                 }
                 attrsModel[attrModel.name].push(attrModel);
+
             }
             elementModel.attr = attrsModel;
             //end of handling attribute
 
 
-            for (var i = 0; i < element.children.length; i++) {
-
-                var child = element.children[i];
-                me._parseInternally(child, elementModel.children);
+            for (var i = 0; i < element.childNodes.length; i++) {
+                var child = element.childNodes[i];
+                me._parseInternally(child, elementModel.children, elementModel);
             }
-            //
 
 
         };
@@ -126,6 +157,7 @@ var Xml2Node =
 
                 var childTagName = tagNames[idx];
 
+
                 var childCount = node.getNumOfChildren(childTagName);
 
 
@@ -160,13 +192,13 @@ var Xml2Node =
                                 attrStr += " // -> " + childNode.attr(childNodeAttrName);
                             }
 
-
                             //add attribute showing code
                             hint.hintCode += attrStr + "\n";
 
                         }
                     }
-                    if (childNode.getChildTagNames().length == 0 && (typeof(childNode.value()) !== "undefined")) {
+
+                    if ((typeof(childNode.value()) !== "undefined")) {
 
                         var valueStr = hintCodePrefix + _tmpStr + ".value()";
                         valueStr += hintCodeSuffix;

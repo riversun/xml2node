@@ -7,55 +7,20 @@ module.exports = {
     Node: XmlNode
 };
 },{"./src/Xml2Node.js":2,"./src/XmlNode.js":3}],2:[function(require,module,exports){
+var XmlNode = require("./XmlNode.js");
+
 var Xml2Node =
     (function () {
         'use strict';
 
         function Xml2Node() {
             this.parser = new DOMParser();
-        //    this.xml=new XmlNode();
-            this._test();
-        }
-
-        Xml2Node.prototype._test = function () {
-            var me = this;
-
-            var xml =
-                '<?xml version="1.0" encoding="utf-8"?>' +
-                '<opml version="2.0">' +
-                '  <head>' +
-                '    <title>タイトル</title>' +
-                '    <flavor>RSSアプリ</flavor>' +
-                '    <source>https://example.com</source>' +
-                '  </head>' +
-                '  <body>' +
-                '    <outline text="挨拶">' +
-                '      <outline text="朝は、おはよう"/>' +
-                '      <outline text="昼は、こんにちは"/>' +
-                '      <outline text="夜は、こんばんは"/>' +
-                '    </outline>' +
-                '    <outline text="お礼">' +
-                '      <outline text="ありがとう"/>' +
-                '      <outline text="サンキュー"/>' +
-                '    </outline>' +
-                '  </body>' +
-                '</opml>';
-
-
-          //  alert(Face)
-            var jso = me.parseXML(xml);
-            console.log(JSON.stringify(jso));
-            // console.log(jso.opml[0].children.head[0].children.title[0].value);
-            //  alert(new XQ(jso).get("opml").get("head").get("title").value());
-         //   alert(new XmlNode(jso).get("opml").attr("version"));
-         //   alert(new XmlNode(jso).get("opml").get("body").get("outline").get("outline", 0).attr("text"));
-            // alert(new XQ(jso).get("opml").get("body1").get("outline1").numOfChildren("outline"));
 
         }
 
         /**
-         * 指定されてxmlテキストをパースする
-         * @param xmlText XMLテキスト
+         * Parse specified XML text
+         * @param xmlText XML text
          * @returns {{children: {}}}
          */
         Xml2Node.prototype.parseXML = function (xmlText) {
@@ -64,42 +29,78 @@ var Xml2Node =
             var doc = me.parser.parseFromString(xmlText, "text/xml");
 
             var model = {};
-            me._parseInternally(doc.children[0], model);
+            me._parseInternally(doc.children[0], model, {stack: [], index: []});
 
             return {
                 children: model
             };
         };
 
-        Xml2Node.prototype._parseInternally = function (element, model) {
+        Xml2Node.prototype._parseInternally = function (element, model, parentElementModel) {
             var me = this;
 
+            //model["body"]=[];
+            //model["body"][0]={tagName:"body",value="hogehoge",children:[],attr={}};
 
             if (!model[element.tagName]) {
                 model[element.tagName] = [];
             }
 
-            var elementModel = {};
+
+            if (element.nodeName == "#comment") {
+                //-if element node is comment node
+                return;
+            }
+
+            if (element.nodeName == "#text") {
+                //-if element node is text node
+
+                var blankReplacedElementContent = element.textContent.replace(/ /g, '').replace(/\r?\n/g, '').replace(/\n/g, '').replace(/\t/g, '');
+                if (blankReplacedElementContent.length == 0) {
+                    //-if text node is empty
+
+                } else {
+                    //-if text node is not empty
+                    parentElementModel.value = element.textContent;
+                }
+
+
+                return;
+            }
+
+            var elementModel =
+                {
+                    tagName: null,
+                    children: null,
+                    attr: null
+                };
+            elementModel.tagName = element.tagName;
+
             model[element.tagName].push(elementModel);
 
 
-            var isIndependentNode = !(element.children.length > 0);
+            var elementHasValueOrChildren = (element.children.length > 0);
 
-            if (isIndependentNode) {
+            if (elementHasValueOrChildren) {
+                elementModel.children = {};
+            } else {
                 if (element.textContent && element.textContent.length > 0) {
                     elementModel.value = element.textContent;
+                    return;
                 }
-            } else {
-                elementModel.children = {};
             }
 
+
+            //start of handling attributes
             var attrsModel;
+
 
             if (element.attributes.length > 0) {
                 attrsModel = {};
             }
 
             for (var i = 0; i < element.attributes.length; i++) {
+
                 var attr = element.attributes[i];
 
                 var attrModel = {
@@ -111,12 +112,123 @@ var Xml2Node =
                     attrsModel[attrModel.name] = [];
                 }
                 attrsModel[attrModel.name].push(attrModel);
+
             }
             elementModel.attr = attrsModel;
+            //end of handling attribute
 
-            for (var i = 0; i < element.children.length; i++) {
-                me._parseInternally(element.children[i], elementModel.children);
+
+            for (var i = 0; i < element.childNodes.length; i++) {
+                var child = element.childNodes[i];
+                me._parseInternally(child, elementModel.children, elementModel);
             }
+
+
+        };
+
+        Xml2Node.prototype.generateExampleSourceCode = function (xmlText) {
+            var me = this;
+            var jsObject = me.parseXML(xmlText);
+            var node = new XmlNode(jsObject);
+
+            var hintCodeBase =
+                "var parser = new Xml2Node.Parser();\n" +
+                "var jsObject = parser.parseXML(xml);\n" +
+                "var node=new Xml2Node.Node(jsObject);\n";
+
+
+            var hint = {stack: [], hintCode: hintCodeBase};
+
+            me._generateExampleSourceCode(node, hint);
+
+            return hint.hintCode;
+
+        };
+
+        /**
+         * Generate an example of parsing XML into JS code.
+         * @param node
+         * @param hint
+         * @private
+         */
+        Xml2Node.prototype._generateExampleSourceCode = function (node, hint) {
+            var me = this;
+
+            var printWithValue = true;
+
+            var hintCodePrefix = "console.log(node";
+            var hintCodeSuffix = ");";
+
+            var tagNames = node.getChildTagNames();
+
+
+            for (var idx = 0; idx < tagNames.length; idx++) {
+
+                var childTagName = tagNames[idx];
+
+
+                var childCount = node.getNumOfChildren(childTagName);
+
+
+                for (var i = 0; i < childCount; i++) {
+
+
+                    var childNode = node.get(childTagName, i);
+
+
+                    var hintStr = ".get(\"" + childNode.getTagName() + "\"";
+                    if (childCount - 1 > 0) {
+                        hintStr += "," + i + "";
+                    }
+                    hintStr += ")";
+
+
+                    hint.stack.push(hintStr);
+
+                    var _tmpStr = "";
+                    for (var j in hint.stack) {
+                        _tmpStr += hint.stack[j];
+                    }
+
+                    //start of handling attribute
+                    var childNodeAttrNames = childNode.getAttrNames();
+                    if (childNodeAttrNames.length > 0) {
+                        for (var attrIdx in childNodeAttrNames) {
+                            var childNodeAttrName = childNodeAttrNames[attrIdx];
+                            var attrStr = hintCodePrefix + _tmpStr + '.attr("' + childNodeAttrName + '")';
+                            attrStr += hintCodeSuffix;
+                            if (printWithValue) {
+                                attrStr += " // -> " + childNode.attr(childNodeAttrName);
+                            }
+
+                            //add attribute showing code
+                            hint.hintCode += attrStr + "\n";
+
+                        }
+                    }
+
+                    if ((typeof(childNode.value()) !== "undefined")) {
+
+                        var valueStr = hintCodePrefix + _tmpStr + ".value()";
+                        valueStr += hintCodeSuffix;
+                        if (printWithValue) {
+                            valueStr += " // ->" + childNode.value();
+                        }
+
+                        //add value showing code
+                        hint.hintCode += valueStr + "\n";
+
+                    }
+
+                    me._generateExampleSourceCode(childNode, hint);
+
+                    hint.stack.pop();
+
+                }
+
+            }
+
+
         };
 
         return Xml2Node;
@@ -125,8 +237,7 @@ var Xml2Node =
     })();
 
 module.exports = Xml2Node;
-},{}],3:[function(require,module,exports){
-
+},{"./XmlNode.js":3}],3:[function(require,module,exports){
 var XmlNode =
     (function () {
         'use strict';
@@ -134,6 +245,11 @@ var XmlNode =
         function XmlNode(node) {
             this.node = node;
         }
+
+        XmlNode.prototype.getTagName = function () {
+            var me = this;
+            return me.node.tagName;
+        };
 
         XmlNode.prototype.get = function (name, index) {
             var me = this;
@@ -153,7 +269,18 @@ var XmlNode =
             }
         };
 
-        XmlNode.prototype.numOfChildren = function (name) {
+        XmlNode.prototype.getChildTagNames = function () {
+            var me = this;
+            var tagNames = [];
+            for (var key in me.node.children) {
+
+                tagNames.push(key);
+            }
+
+            return tagNames;
+        }
+
+        XmlNode.prototype.getNumOfChildren = function (name) {
             var me = this;
             if (me.node.children && me.node.children[name]) {
                 return me.node.children[name].length;
@@ -162,12 +289,13 @@ var XmlNode =
             }
         };
 
-        XmlNode.prototype.hasChild = function (name) {
+
+        XmlNode.prototype.hasChildOf = function (name) {
             var me = this;
-            return (me.numOfChildren(name) > 0);
+            return (me.getNumOfChildren(name) > 0);
         };
 
-        XmlNode.prototype.value = function (name) {
+        XmlNode.prototype.value = function () {
             var me = this;
             return me.node.value;
         };
@@ -194,6 +322,18 @@ var XmlNode =
                 return true;
             }
             return false;
+        };
+
+        XmlNode.prototype.getAttrNames = function () {
+            var me = this;
+            var attrNames = [];
+            if (me.node.attr) {
+                for (var key in me.node.attr) {
+                    attrNames.push(key);
+                }
+            }
+            return attrNames;
+
         };
 
 
