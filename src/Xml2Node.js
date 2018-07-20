@@ -19,15 +19,21 @@ var Xml2Node =
          * @param xmlText XML text
          * @returns {{children: {}}}
          */
-        Xml2Node.prototype.parseXML = function (xmlText) {
+        Xml2Node.prototype.parseXML = function (xmlText, contentType) {
             var me = this;
 
-            var doc = me.parser.parseFromString(xmlText, "text/xml");
+            var doc;
+
+            if (!contentType) {
+                contentType = me.detectDocumentType(xmlText);
+            }
+
+            doc = me.parser.parseFromString(xmlText, contentType);
 
             var model = {};
 
             var firstElement;
-            
+
             for (var i = 0; i < doc.childNodes.length; i++) {
                 var tagName = doc.childNodes[i].nodeName;
                 if (tagName && tagName != "#text" && tagName != "#comment") {
@@ -49,11 +55,6 @@ var Xml2Node =
             //model["body"]=[];
             //model["body"][0]={tagName:"body",value="hogehoge",children:[],attr={}};
 
-            if (!model[element.tagName]) {
-                model[element.tagName] = [];
-            }
-
-
             if (element.nodeName == "#comment") {
                 //-if element node is comment node
                 return;
@@ -68,12 +69,22 @@ var Xml2Node =
 
                 } else {
                     //-if text node is not empty
+                    var elementTextContent = me.removeUnnecessaryTail(element.textContent);
 
-                    parentElementModel.value = me.removeUnnecessaryTail(element.textContent);
+                    if (!parentElementModel.value) {
+                        //- parentElement has only one child-text-node.
+                        parentElementModel.value = elementTextContent;
+                    } else {
+                        //- parentElement has multiple child-text-node.
+                        parentElementModel.value += ("\n" + elementTextContent);
+                    }
                 }
 
 
                 return;
+            }
+            if (!model[element.tagName]) {
+                model[element.tagName] = [];
             }
 
             var elementModel =
@@ -152,6 +163,33 @@ var Xml2Node =
 
 
         };
+
+        /**
+         * Do document type detection
+         * @param xmlText
+         * @returns {string}
+         */
+        Xml2Node.prototype.detectDocumentType = function (xmlText) {
+            var me = this;
+            var doc = me.parser.parseFromString(xmlText, "text/xml");
+
+            var model = {};
+
+            var firstElement;
+
+            for (var i = 0; i < doc.childNodes.length; i++) {
+                var tagName = doc.childNodes[i].nodeName;
+                if (tagName && tagName != "#text" && tagName != "#comment") {
+                    firstElement = doc.childNodes[i];
+                    break;
+                }
+            }
+            if ("html" === firstElement.tagName.toLowerCase()) {
+                return "text/html";
+            }
+            return "text/xml";
+        };
+
         /**
          * Remove unncessary space or newline chars
          * @param text
@@ -248,7 +286,7 @@ var Xml2Node =
                             var attrStr = hintCodePrefix + _tmpStr + '.attr("' + childNodeAttrName + '")';
                             attrStr += hintCodeSuffix;
                             if (printWithValue) {
-                                attrStr += " // -> " + '"'+childNode.attr(childNodeAttrName)+'"';
+                                attrStr += " // -> " + '"' + childNode.attr(childNodeAttrName) + '"';
                             }
 
                             //add attribute showing code
@@ -262,7 +300,7 @@ var Xml2Node =
                         var valueStr = hintCodePrefix + _tmpStr + ".value()";
                         valueStr += hintCodeSuffix;
                         if (printWithValue) {
-                            valueStr += " // -> " + '"'+childNode.value()+'"';
+                            valueStr += " // -> " + '"' + childNode.value() + '"';
                         }
 
                         //add value showing code
